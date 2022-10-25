@@ -1,0 +1,55 @@
+#!/bin/bash
+
+#SBATCH -J hermes-3-test
+#SBATCH -N1 -n64
+#SBATCH --time=2:00:00
+#SBATCH --account=e281-bout
+#SBATCH --partition=standard
+# #SBATCH --qos=lowpriority
+#SBATCH --qos=standard
+#SBATCH --output output-beuler.log
+#SBATCH --error error-beuler.log
+
+# set -e
+
+# Get setup for STORM/BOUT++
+# Path assumes we are running from under a 'build directory', as created when
+# compiling with CMake - would need to be modified if running from the original
+# 'source' directory.
+# source ../../BOUT-configs/archer/bout.env
+# source /mnt/lustre/a2fs-work2/work/e281/e281/hm1234/BOUT22/BOUT-configs/archer/bout.env
+
+# module load PrgEnv-cray/8.1.0
+# module load netcdf4/1.5.7 cmake/3.21.3 cray-hdf5-parallel/1.12.1.1 cray-netcdf-hdf5parallel/4.7.4.7 cray-parallel-netcdf/1.12.1.7 epcc-cray-netcdf-hdf5parallel/4.7.4.7 cray-fftw/3.3.8.11 valgrind4hpc/2.12.4
+
+# module purge
+# module load 
+source /mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/configs/bout2.env
+
+# export HDF5_DISABLE_VERSION_CHECK=1
+# h5dump --version
+# echo $(h5dump --version)
+
+module list
+
+# Handle the fact that 'srun' must be used to run MPI programs on ARCHER2
+export MPIRUN="srun --hint=nomultithread --distribution=block:block -n"
+
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/external/BOUT-dev/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build:$LD_LIBRARY_PATH
+
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/dependencies/petsc-build/lib:$LD_LIBRARY_PATH
+
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/nvector/parallel:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/nvector/serial:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/cvode:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/cvodes:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/ida:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/idas:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/arkode:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/_deps/sundials-build/src/kinsol:$LD_LIBRARY_PATH
+
+
+cd $SLURM_SUBMIT_DIR
+# srun --hint=nomultithread --distribution=block:block -n $SLURM_NTASKS ../build/hermes-2 -d annulus-beuler
+$MPIRUN $SLURM_NTASKS /mnt/lustre/a2fs-work2/work/e281/e281/hm1234/hermes-3/build/hermes-3 -d ./
